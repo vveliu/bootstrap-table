@@ -1,4 +1,4 @@
-/**
+ /**
  * @author zhixin wen <wenzhixin2010@gmail.com>
  * version: 1.11.1
  * https://github.com/wenzhixin/bootstrap-table/
@@ -457,7 +457,9 @@
         },
         onResetView: function () {
             return false;
-        }
+        },
+        lastSortOrder : undefined,
+        dataUnsorted : undefined
     };
 
     BootstrapTable.LOCALES = {};
@@ -928,7 +930,25 @@
             name = this.options.sortName,
             order = this.options.sortOrder === 'desc' ? -1 : 1,
             index = $.inArray(this.options.sortName, this.header.fields),
-            timeoutId = 0;
+            timeoutId = 0,
+            currSortOrder = this.options.sortOrder,
+            lastSortOrder = this.options.lastSortOrder;
+
+        if(lastSortOrder === undefined && this.options.dataUnsorted === undefined){
+            this.options.dataUnsorted = this.options.data.slice();
+        } else if(lastSortOrder === 'asc' && currSortOrder === 'desc'){
+            this.options.sortOrder     = 'asc';
+            this.options.sortName      = undefined;
+            this.options.lastSortOrder = undefined;
+            this.options.data          = this.options.dataUnsorted.slice();
+            this.data                  = this.options.data;
+            this.options.dataUnsorted  = undefined;
+
+            return;
+        }
+
+        if(!(lastSortOrder === undefined && currSortOrder === 'asc'))
+            this.options.lastSortOrder = currSortOrder;
 
         if (this.options.customSort !== $.noop) {
             this.options.customSort.apply(this, [this.options.sortName, this.options.sortOrder]);
@@ -1017,7 +1037,11 @@
             this.options.sortOrder = this.options.sortOrder === 'asc' ? 'desc' : 'asc';
         } else {
             this.options.sortName = $this.data('field');
-            this.options.sortOrder = $this.data('order') === 'asc' ? 'desc' : 'asc';
+
+            if(this.options.lastSortOrder === undefined)
+                this.options.sortOrder = 'desc';
+            else
+                this.options.sortOrder = $this.data('order') === 'asc' ? 'desc' : 'asc';
         }
         this.trigger('sort', this.options.sortName, this.options.sortOrder);
 
@@ -3060,3 +3084,4 @@
         $('[data-toggle="table"]').bootstrapTable();
     });
 })(jQuery);
+
